@@ -8,7 +8,7 @@ float circle_y1 = 100;
 float circle_y2 = 200;
 float r1 = 40;
 float r2 = 100;
-float speed = 300.0f;
+float speed = 500.0f;
 float thickness = 4.0f; 
 
 float velocity_x1 = 0, velocity_y1 = 0;

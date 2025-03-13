@@ -5,23 +5,6 @@
 #include "stuff/globals.h"
 
 
-
-// // Global variables
-// float circle_x1 = 100;
-// float circle_x2 = 200;
-// float circle_y1 = 100;
-// float circle_y2 = 200;
-// float r1 = 40;
-// float r2 = 100;
-// float speed = 300.0f;
-// float thickness = 4.0f; 
-
-// float velocity_x1 = 0, velocity_y1 = 0;
-// float velocity_x2 = 0, velocity_y2 = 0;
-// float friction = 0.98f;
-
-
-
 bool checkCollision() {
     float dx = circle_x2 - circle_x1;
     float dy = circle_y2 - circle_y1;
@@ -39,27 +22,55 @@ void resolveCollision() {
 
     float overlap = (r1+r2) - distance; // if +ve they are overlapping
     
-    float pushX = (dx / distance) * (overlap / 2);
-    float pushY = (dy / distance) * (overlap / 2);
+    float normX = dx/distance;
+    float normY = dy/distance;
 
-    // Apply push while keeping circles inside the screen bounds
-    // Each circle will move half the overlap distance in opposite directions
-    if (circle_x1 - pushX >= r1 && circle_x1 - pushX <= GetScreenWidth() - r1) {
-        circle_x1 -= pushX;
-    }
-    if (circle_y1 - pushY >= r1 && circle_y1 - pushY <= GetScreenHeight() - r1) {
-        circle_y1 -= pushY;
-    }
+    float pushAmount = overlap * 5.0f;
 
-    if (circle_x2 + pushX >= r2 && circle_x2 + pushX <= GetScreenWidth() - r2) {
-        circle_x2 += pushX;
-    }
-    if (circle_y2 + pushY >= r2 && circle_y2 + pushY <= GetScreenHeight() - r2) {
-        circle_y2 += pushY;
-    }
+    velocity_x1 -= normX * pushAmount;
+    velocity_y1 -= normY * pushAmount;
+    velocity_x2 += normX * pushAmount;
+    velocity_y2 += normY * pushAmount;
 }
 
-
+// Check and handle screen boundary collisions
+void handleScreenBoundaries() {
+    float bounceFactor = 0.7f; // Controls how much velocity is preserved after bouncing
+    
+    // blue boundary checks
+    if (circle_x1 - r1 < 0) {
+        circle_x1 = r1;
+        velocity_x1 = fabs(velocity_x1) * bounceFactor;  // +ve x bounce 
+    } else if (circle_x1 + r1 > GetScreenWidth()) {
+        circle_x1 = GetScreenWidth() - r1;
+        velocity_x1 = -fabs(velocity_x1) * bounceFactor; // -ve x bounce
+    }
+    
+    if (circle_y1 - r1 < 0) {
+        circle_y1 = r1;
+        velocity_y1 = fabs(velocity_y1) * bounceFactor; // +y bounce
+    } else if (circle_y1 + r1 > GetScreenHeight()) {
+        circle_y1 = GetScreenHeight() - r1;
+        velocity_y1 = -fabs(velocity_y1) * bounceFactor; // -y bounce
+    }
+    
+    // red boundary checks
+    if (circle_x2 - r2 < 0) {
+        circle_x2 = r2;
+        velocity_x2 = fabs(velocity_x2) * bounceFactor; // +x bounce 
+    } else if (circle_x2 + r2 > GetScreenWidth()) {
+        circle_x2 = GetScreenWidth() - r2;
+        velocity_x2 = -fabs(velocity_x2) * bounceFactor; // -x bounce
+    }
+    
+    if (circle_y2 - r2 < 0) {
+        circle_y2 = r2;
+        velocity_y2 = fabs(velocity_y2) * bounceFactor; // +y bounce
+    } else if (circle_y2 + r2 > GetScreenHeight()) {
+        circle_y2 = GetScreenHeight() - r2;
+        velocity_y2 = -fabs(velocity_y2) * bounceFactor; // -y bounce
+    }
+}
 
 void moveBlue(float deltaTime) {
     if (IsKeyDown(KEY_D) && circle_x1 < GetScreenWidth() - r1) {
@@ -94,7 +105,7 @@ void moveRed(float deltaTime) {
 int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
-    InitWindow(screenWidth, screenHeight, "Raylib Window");
+    InitWindow(screenWidth, screenHeight, "Pengine");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
@@ -107,10 +118,23 @@ int main() {
             resolveCollision();
         }
 
+        // Apply velocity updates
+        circle_x1 += velocity_x1 * deltaTime;
+        circle_y1 += velocity_y1 * deltaTime;
+        circle_x2 += velocity_x2 * deltaTime;
+        circle_y2 += velocity_y2 * deltaTime;
+        
+        // Handle screen boundary collisions
+        handleScreenBoundaries();
+
+        // increases frcition over time so that it does not go moving forever...
+        velocity_x1 *= friction;
+        velocity_y1 *= friction;
+        velocity_x2 *= friction;
+        velocity_y2 *= friction;
+
         BeginDrawing();
         ClearBackground(VERYDARKGRAY);
-        // DrawCircleLines(static_cast<int>(circle_x1), static_cast<int>(circle_y1), r1, BLUE);
-        // DrawCircleLines(static_cast<int>(circle_x2), static_cast<int>(circle_y2), r2, RED);
         DrawRing({circle_x1, circle_y1}, r1 - thickness, r1, 0, 360, 50, BLUE);
         DrawRing({circle_x2, circle_y2}, r2 - thickness, r2, 0, 360, 50, RED);
 
