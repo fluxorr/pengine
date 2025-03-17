@@ -25,6 +25,8 @@ void resolveCollision() {
     float normX = dx/distance;
     float normY = dy/distance;
 
+    // (dx/distance) and (dy/distance) give a unit vector in the direction from circle1 to circle2. This ensures we move them apart in the correct direction.
+
     float pushAmount = overlap * 5.0f;
 
     velocity_x1 -= normX * pushAmount;
@@ -33,44 +35,7 @@ void resolveCollision() {
     velocity_y2 += normY * pushAmount;
 }
 
-// Check and handle screen boundary collisions
-void handleScreenBoundaries() {
-    float bounceFactor = 0.7f; // Controls how much velocity is preserved after bouncing
-    
-    // blue boundary checks
-    if (circle_x1 - r1 < 0) {
-        circle_x1 = r1;
-        velocity_x1 = fabs(velocity_x1) * bounceFactor;  // +ve x bounce 
-    } else if (circle_x1 + r1 > GetScreenWidth()) {
-        circle_x1 = GetScreenWidth() - r1;
-        velocity_x1 = -fabs(velocity_x1) * bounceFactor; // -ve x bounce
-    }
-    
-    if (circle_y1 - r1 < 0) {
-        circle_y1 = r1;
-        velocity_y1 = fabs(velocity_y1) * bounceFactor; // +y bounce
-    } else if (circle_y1 + r1 > GetScreenHeight()) {
-        circle_y1 = GetScreenHeight() - r1;
-        velocity_y1 = -fabs(velocity_y1) * bounceFactor; // -y bounce
-    }
-    
-    // red boundary checks
-    if (circle_x2 - r2 < 0) {
-        circle_x2 = r2;
-        velocity_x2 = fabs(velocity_x2) * bounceFactor; // +x bounce 
-    } else if (circle_x2 + r2 > GetScreenWidth()) {
-        circle_x2 = GetScreenWidth() - r2;
-        velocity_x2 = -fabs(velocity_x2) * bounceFactor; // -x bounce
-    }
-    
-    if (circle_y2 - r2 < 0) {
-        circle_y2 = r2;
-        velocity_y2 = fabs(velocity_y2) * bounceFactor; // +y bounce
-    } else if (circle_y2 + r2 > GetScreenHeight()) {
-        circle_y2 = GetScreenHeight() - r2;
-        velocity_y2 = -fabs(velocity_y2) * bounceFactor; // -y bounce
-    }
-}
+
 
 void moveBlue(float deltaTime) {
     if (IsKeyDown(KEY_D) && circle_x1 < GetScreenWidth() - r1) {
@@ -124,8 +89,7 @@ int main() {
         circle_x2 += velocity_x2 * deltaTime;
         circle_y2 += velocity_y2 * deltaTime;
         
-        // Handle screen boundary collisions
-        handleScreenBoundaries();
+     
 
         // increases frcition over time so that it does not go moving forever...
         velocity_x1 *= friction;
